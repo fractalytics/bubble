@@ -27,6 +27,9 @@
     .legend text{
         font-family: "tahoma";
     }
+        #csvdata {
+        display: none;
+    }
 
     div.tooltip {	
         position: absolute;
@@ -45,6 +48,21 @@
     }
 </style>
 <body>
+
+<pre id="csvdata">
+name,value,color
+United States,395995,#f47871
+United Kingdom,253700.4049
+China (People's Republic of),170556.5
+Netherlands,91910.87029
+Brazil,58680,#C47871
+India,44464
+Australia,41980.97079
+Russia,37440
+France,34139.48824,#B47871
+Canada,33721.14079
+</pre>
+
 
 
 <script>
@@ -67,36 +85,68 @@ var with_units = true
 var with_title = true
 var title="Foreign Direct Investment (FDI) of G20 members"
 
+var data_embedded = true
 
 var show_tooltip_for_small_bubbles = true
-
 //-------------------------------------------------------------------------------
 
 var gloabalObj = []
 
-d3.text(file, function(r){
+var raw = d3.select("#csvdata").text();
 
-    var firstline = r.split('\n')[0]
+if(data_embedded){
+
+        console.log('data is embedded')
     
-    if(!firstline.startsWith("name,value")){
 
-        d3.text(file, function(r){
-
-            var result = "name,value,color\n" + r;  
-            gloabalObj = d3.csv.parse(result);
-            myDataIsReady()
-
-        });
+        var firstline = raw.split('\n')[0]
         
-    }else{
-            d3.csv(file, function(data) {
-        
-                gloabalObj = data
+        if(!firstline.startsWith("name,value")){
+
+            d3.text(file, function(r){
+
+                var result = "name,value,color\n" + r;  
+                gloabalObj = d3.csv.parse(result);
                 myDataIsReady()
-            });
-    }
 
-});
+            });
+            
+        }else{
+                d3.csv(file, function(data) {
+            
+                    gloabalObj = data
+                    myDataIsReady()
+                });
+        }
+
+}else{
+
+    d3.text(file, function(r){
+
+        var firstline = r.split('\n')[0]
+        
+        if(!firstline.startsWith("name,value")){
+
+            d3.text(file, function(r){
+
+                var result = "name,value,color\n" + r;  
+                gloabalObj = d3.csv.parse(result);
+                myDataIsReady()
+
+            });
+            
+        }else{
+                d3.csv(file, function(data) {
+            
+                    gloabalObj = data
+                    myDataIsReady()
+                });
+        }
+
+    });
+
+}
+
 
 
 function myDataIsReady() {
@@ -138,10 +188,12 @@ function myDataIsReady() {
                     .text(title);
     }
 
+
     // Define the div for the tooltip
     var div = d3.select("body").append("div")	
         .attr("class", "tooltip")				
         .style("opacity", 0);
+
 
     var node = svg.selectAll(".node")
                 .data(bubble.nodes(root)
@@ -171,6 +223,7 @@ function myDataIsReady() {
                             .duration(500)		
                             .style("opacity", 0);	
                 });
+
 
     var colour = d3.scale.category10();
     var circle = node.append("circle")
@@ -207,7 +260,7 @@ function myDataIsReady() {
     }
 
     function si_viz(v){
-        // console.log(v)
+        console.log(v)
         var l = v.length
 
         if(between(l, 4, 6) ){
@@ -227,24 +280,28 @@ function myDataIsReady() {
 	
 	function scientific_viz(v){	
 		var v =parseFloat(v)
-		// console.log(v)
+		console.log(v)
 		return v.toExponential(2).replace("e",'\u22c5'+'10').substr(0, 7)+'^'+v.toExponential(0).substr(3, 10)
 	}	
 			
 	function viz(dv){
 		if(SHOW_SI_VIZ){
-			// console.log(SHOW_SI_VIZ)
+			console.log(SHOW_SI_VIZ)
 			return si_viz(dv)
 		}
 		if(SHOW_SCIENTIFIC_VIZ){
-		    // console.log(SHOW_SCIENTIFIC_VIZ)
+		    console.log(SHOW_SCIENTIFIC_VIZ)
 			return scientific_viz(dv)	
 		}
 		else{return dv}
 	}		
 
-	if(SHOW_NAME){
 				
+    // node.append("title")
+    //         .text(function(d) { return d.name + ' | ' + viz(d.value.toFixed(0).toString()) + ' | ' + (d.percentage*100 ).toFixed(1).toString() + " %" });
+
+	if(SHOW_NAME){
+
 
         	node.append("text")
 				.attr("dy", function(){if(SHOW_VALUE)return '-1em'; else return '0em'})
@@ -261,14 +318,14 @@ function myDataIsReady() {
                         never_fit = true
 
                         text_width = getTextWidth(d.name, (Size/50), 'Helvetica Neue')
-                        // console.log(d.name,' ',text_width+5 ,'<=', d.r*2)
+                        console.log(d.name,' ',text_width+5 ,'<=', d.r*2)
                         if(text_width+5 <= d.r*2){
                             never_fit = false
                         }
                         
                         if(never_fit){
-                            // console.log(d.name)
-                            // console.log(getMinLength(d.name,d.r))
+                            console.log(d.name)
+                            console.log(getMinLength(d.name,d.r))
                             return (d.name.substring(0,getMinLength(d.name,d.r))+"..")
                         }
                         else return (d.name)
@@ -345,9 +402,7 @@ function myDataIsReady() {
                             return (percent)
                     }
                     else if(d.r <= 30*Size/350){
-                        // console.log(d.name)
                         return ""
-                        
                     }else{
                         never_fit = true
 
@@ -358,8 +413,8 @@ function myDataIsReady() {
                         }
                         
                         if(never_fit){
-                            // console.log(d.name)
-                            // console.log(getMinLength(d.name,d.r))
+                            console.log(d.name)
+                            console.log(getMinLength(d.name,d.r))
                             return (d.name.substring(0,getMinLength(percent,d.r))+"..")
                         }
                         else return (percent)
@@ -409,7 +464,7 @@ function myDataIsReady() {
                 .attr("height", Size)
                 .attr("class","legends")
                 .attr("transform", "translate(70,0)");
-	
+
 	var nodess = bubble.nodes(root)
     nodess.shift()
 
